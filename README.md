@@ -4,7 +4,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/adi-g15/ludo-the_game/badge)](https://www.codefactor.io/repository/github/adi-g15/ludo-the_game)
 [![Build Status](https://travis-ci.com/adi-g15/Ludo-The_Game.svg?branch=master)](https://travis-ci.com/adi-g15/Ludo-The_Game)
 
-The repo now has a web version too, added by @Athi223, and is available in web/ directory :tada:
+The repo now has a web version too, added by @Athi223, and is available in web/ directory, and deployed at https://ludo-the-game-a10a0.web.app/ :tada:
 
 # Ludo - The Game v2.0
 
