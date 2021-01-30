@@ -3,6 +3,8 @@
 #include "thinker.hpp"
 #include "game.hpp"
 
+using std::find;
+
 thinker::thinker(game *original)
 {
 	this->state = new ludo_state(original);
@@ -14,15 +16,6 @@ thinker::~thinker()
 	delete state;
 }
 
-// namespace Die{
-// 	void rolldie(std::vector<_dieVal>& dieNumbers){
-// 		dieNumbers.push_back(6);
-// 		dieNumbers.push_back(1);
-// 	}
-// }
-
-using std::find;
-
 bool thinker::unlock()
 {
 	state_goti *goti = nullptr;
@@ -31,7 +24,7 @@ bool thinker::unlock()
 	{
 		auto &box = state->getBox(coord);
 
-		if (goti != nullptr && state->board[coord.n_row][coord.n_col].type != Box::LOCK)
+		if (goti != nullptr && state->board[coord.y][coord.x].type != Box::LOCK)
 			break;
 		else if (!box.inBoxGotis.empty())
 			continue;
@@ -51,27 +44,27 @@ bool thinker::unlock()
 	return true;
 }
 
-Direction thinker::getDirOfMovement(const _coord &coord)
+Direction thinker::getDirOfMovement(const coord &coord)
 {
 	Direction retVal;
-	if (coord.n_row < (15 / 2 - 2) || coord.n_col > (15 / 2 - 2))
+	if (coord.y < (15 / 2 - 2) || coord.x > (15 / 2 - 2))
 	{
-		if (coord.n_row == 0)
+		if (coord.y == 0)
 			retVal = Direction::LEFT;
-		else if (coord.n_row == (15 - 1))
+		else if (coord.y == (15 - 1))
 			retVal = Direction::RIGHT;
-		else if (coord.n_col < 15 / 2)
+		else if (coord.x < 15 / 2)
 			retVal = Direction::UP;
 		else
 			retVal = Direction::DOWN;
 	}
 	else
 	{
-		if (coord.n_col == 0)
+		if (coord.x == 0)
 			retVal = Direction::UP;
-		else if (coord.n_col == (15 - 1))
+		else if (coord.x == (15 - 1))
 			retVal = Direction::DOWN;
-		else if (coord.n_row > (15 / 2))
+		else if (coord.y > (15 / 2))
 			retVal = Direction::LEFT;
 		else
 			retVal = Direction::RIGHT;
@@ -79,15 +72,15 @@ Direction thinker::getDirOfMovement(const _coord &coord)
 	return retVal;
 }
 
-const std::optional<_smartMoveData> thinker::isMovePossible(const _coord &coord, int dist) const
+const std::optional<_smartMoveData> thinker::isMovePossible(const coord &coords, int dist) const
 {
 	if( dist == 0 )
 		return {};
 
-	_coord increment_coord(0, 0);
-	_coord updated_coords(coord);
+	coord increment_coord{ 0, 0 };
+	coord updated_coords{ coords };
 
-	Direction turnDir, currDir = this->getDirOfMovement(coord);
+	Direction turnDir, currDir = this->getDirOfMovement(coords);
 	int moveProfit(0);
 
 	auto currBox = std::cref(state->getBox(updated_coords)); // using reference wrapper to allow it to be changed to refer something else
@@ -167,8 +160,8 @@ const std::optional<_smartMoveData> thinker::isMovePossible(const _coord &coord,
 			}
 		}
 
-		updated_coords.n_row += increment_coord.n_row;
-		updated_coords.n_col += increment_coord.n_col;
+		updated_coords.y += increment_coord.y;
+		updated_coords.x += increment_coord.x;
 		currBox = state->getBox(updated_coords);
 
 		//Judging the profit START
@@ -249,7 +242,7 @@ bool thinker::setBestMove()
 
 	int maxProfit = 0;
 
-	Die::rolldie(dieNumbers);
+	Die::getDieResult(dieNumbers);
 
 	std::set<_dieVal> usedRolls;
 
@@ -267,7 +260,7 @@ bool thinker::setBestMove()
 		}
 	}
 
-	std::vector<_coord> movingPos, opponentsPos;
+	std::vector<coord> movingPos, opponentsPos;
 	for (long i = 0; i < state->board.size(); ++i)
 	{
 		for (long j = 0; j < state->board.at(i).size(); ++j)
@@ -293,7 +286,7 @@ bool thinker::setBestMove()
 	return this->bestMove_available;
 }
 
-bool thinker::mindlessMovers(_dieVal roll, std::vector<_dieVal> dieNumbers, unsigned gotiIndex, std::vector<_coord> movingColoursPos, std::vector<_coord> opponentsPos, std::pair<std::vector<combination>, int> prevMoves)
+bool thinker::mindlessMovers(_dieVal roll, std::vector<_dieVal> dieNumbers, unsigned gotiIndex, std::vector<coord> movingColoursPos, std::vector<coord> opponentsPos, std::pair<std::vector<combination>, int> prevMoves)
 {
 	if (dieNumbers.empty())
 	{
@@ -304,7 +297,7 @@ bool thinker::mindlessMovers(_dieVal roll, std::vector<_dieVal> dieNumbers, unsi
 		return true;
 	}
 
-	/*Updated isMovePossible to take _coord instead of goti pointer...
+	/*Updated isMovePossible to take coord instead of goti pointer...
 			BENEFITS -> 1. No need to update the gotis themselves
 						2. Passing a vector of coords, as movingGotis, is lighter, SAFER to pass by value to further chain*/
 	auto movePossible = this->isMovePossible(movingColoursPos.at(gotiIndex), roll);
@@ -324,7 +317,7 @@ bool thinker::mindlessMovers(_dieVal roll, std::vector<_dieVal> dieNumbers, unsi
 					auto box = state->getBox(smartData.finalCoord);
 					if ( (box.type == Box::HOME_END) || (box.areOpponentsPresent(state->currColour) && box.type == Box::NORMAL))
 					{
-						Die::rolldie(dieNumbers);
+						Die::getDieResult(dieNumbers);
 					}
 
 					prevMoves.first.push_back({gotiIndex, roll});
@@ -347,7 +340,7 @@ bool thinker::mindlessMovers(_dieVal roll, std::vector<_dieVal> dieNumbers, unsi
 			auto box = state->getBox(smartData.finalCoord);
 			if ((box.type == Box::HOME_END) || (box.areOpponentsPresent(state->currColour) && box.type == Box::NORMAL))
 			{
-				Die::rolldie(dieNumbers);
+				Die::getDieResult(dieNumbers);
 			}
 
 			prevMoves.first.push_back({gotiIndex, roll});

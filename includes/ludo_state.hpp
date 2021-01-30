@@ -21,11 +21,11 @@
 class state_goti{
 	const _colour gotiColour;
 	Direction currDir;
-	_coord coords;
-	~state_goti();	//! state_box will take the ownership
+	coord coords;
+	~state_goti();
 
 public:
-	state_goti(_colour, Direction, _coord);
+	state_goti(_colour, Direction, coord);
 
 	friend class state_box;
 	friend class ludo_state;
@@ -53,18 +53,18 @@ class ludo_state{
 
 	std::vector<std::vector<state_box>> board;
 
-	std::vector<_coord> lockedPositions;
-	std::map<_colour, std::vector<_coord>> movingColours;	//DONT UPDATE THIS, EVEN IF UPDATED THE BOARD, SINCE IT WILL LATER BE USED TO RESET THE BOARD
+	std::vector<coord> lockedPositions;
+	std::map<_colour, std::vector<coord>> movingColours;	//DONT UPDATE THIS, EVEN IF UPDATED THE BOARD, SINCE IT WILL LATER BE USED TO RESET THE BOARD
 
 	Player currPlayer;
 	_colour currColour;
 
 	void update(const game*);
-	state_box& getBox(const _coord&);
-	const state_box& getBox(const _coord&) const;
+	state_box& getBox(const coord&);
+	const state_box& getBox(const coord&) const;
 
 public:
-	ludo_state(const game*);
+	explicit ludo_state(const game*);
 	bool isInSync(const game*);
 	void resetBoard();	//Uses 'org_movingColours' to reset the board
 	size_t getNumLocks();
